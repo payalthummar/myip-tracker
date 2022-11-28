@@ -66,7 +66,7 @@ function App() {
         <i>{currentCountry.flag}</i>
       </h4>
 
-      <img src={currentCountry.flags.png} alt="Germany" />
+      {/* <img src={currentCountry.flags.png} alt="Germany" /> */}
 
       <h4>
         Country Region is <i>{currentCountry.region}</i>
