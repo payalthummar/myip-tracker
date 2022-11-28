@@ -14,7 +14,6 @@ function App() {
   const [position, setPosition] = useState([51.505, -0.09]);
   const [currentCountry, setCurrentCountry] = useState("");
   const [alpha2code, setAlpha2Code] = useState("");
-  // const [countries, setCountries] = useState([]);
 
   function fetchData() {
     axios
