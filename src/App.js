@@ -1,63 +1,79 @@
 import "./App.css";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, useMap, Marker, Popup } from "react-leaflet";
-import MyApi from "./MyApi";
-import L from "leaflet";
-
-delete L.Icon.Default.prototype._getIconUrl;
-
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
-  iconUrl: require("leaflet/dist/images/marker-icon.png"),
-  shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
-});
+import "leaflet/dist/leaflet.css";
+import MyIp from "./MyIp";
+import Map from "./Map";
 
 function App() {
-  const url = `https://geo.ipify.org/api/v2/country?apiKey=${process.env.REACT_APP_API_KEY}`;
+  const url = `https://geo.ipify.org/api/v2/country,city?apiKey=${process.env.REACT_APP_API_KEY}`;
 
   // const url2 =
-  //   "https://geo.ipify.org/api/v2/country?apiKey=at_007uK5CyJKclEY1wU5Sle8KIdwYOa";
-  const position = [51.505, -0.09];
-
-  const [api, setApi] = useState([]);
+  //   "https://geo.ipify.org/api/v2/country,city?apiKey=at_007uK5CyJKclEY1wU5Sle8KIdwYOa";
+  const [userIp, setUserIp] = useState("");
+  const [position, setPosition] = useState([51.505, -0.09]);
+  const [currentCountry, setCurrentCountry] = useState("");
+  const [alpha2code, setAlpha2Code] = useState("");
+  // const [countries, setCountries] = useState([]);
 
   function fetchData() {
     axios
       .get(url)
       .then((res) => {
         console.log("response", res);
-        if (!res.statusText === "OK") {
-          throw Error(res.statusText);
-        }
-        return setApi(res.data);
+        // if (!res.statusText === "OK") {
+        //   throw Error(res.statusText);
+        // }
+        setUserIp(res.data);
+        setPosition([res.data.location.lat, res.data.location.lng]);
+        setAlpha2Code(res.data.location.country);
       })
       .catch((e) => console.log(e));
   }
+  const getCountryData = () => {
+    try {
+      fetch(`https://restcountries.com/v3.1/alpha/${alpha2code}`).then((res) =>
+        res.json().then((data) => {
+          console.log("contry", data);
+          setCurrentCountry(data[0]) || console.log("COUNTRIES", data[0]);
+        })
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
   useEffect(() => {
     fetchData();
   }, []);
-  console.log("api", api);
+
+  useEffect(() => {
+    alpha2code && getCountryData();
+  }, [alpha2code]);
+  console.log("Ip", userIp);
   return (
     <div className="App">
-      {/* <MyIp api={api} /> */}
-      <h1>My Ip Address is : {api.ip}</h1>
-      <MapContainer
-        center={position}
-        zoom={13}
-        scrollWheelZoom={false}
-        style={{ height: "400px", margin: "auto", width: "60%" }}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <Marker position={position}>
-          <Popup>
-            A pretty CSS3 popup. <br /> Easily customizable.
-          </Popup>
-        </Marker>
-      </MapContainer>
+      <MyIp userIp={userIp} />
+      <Map position={position} />
+      <h4>
+        You currently live in <i>{currentCountry.name?.common}</i>
+      </h4>
+      <h4>
+        Capital of <i>{currentCountry.name?.common}</i> is{" "}
+        <i>{currentCountry.capital}</i>
+      </h4>
+      <h4>
+        Flag of <i>{currentCountry.name?.common}</i> is{" "}
+        <i>{currentCountry.flag}</i>
+      </h4>
+
+      <img src={currentCountry.flags.png} alt="Germany" />
+
+      <h4>
+        Country Region is <i>{currentCountry.region}</i>
+      </h4>
+      <h4>
+        Country SubRegion is <i>{currentCountry.subregion}</i>
+      </h4>
     </div>
   );
 }
